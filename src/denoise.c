@@ -40,6 +40,7 @@
 #include "arch.h"
 #include "rnn.h"
 #include "rnn_data.h"
+#include "vad.h"
 
 #define FRAME_SIZE_SHIFT 2
 #define FRAME_SIZE (120<<FRAME_SIZE_SHIFT)
@@ -526,20 +527,30 @@ int main(int argc, char **argv) {
   DenoiseState *st;
   DenoiseState *noise_state;
   DenoiseState *noisy;
+  void       *tp_vad;
+  int         tv_flag;
+
   st = rnnoise_create(NULL);
   noise_state = rnnoise_create(NULL);
   noisy = rnnoise_create(NULL);
+
   if (argc!=4) {
     fprintf(stderr, "usage: %s <speech> <noise> <count>\n", argv[0]);
     return 1;
   }
+
   f1 = fopen(argv[1], "r");
   f2 = fopen(argv[2], "r");
   maxCount = atoi(argv[3]);
+
+#if 0
   for(i=0;i<150;i++) {
     short tmp[FRAME_SIZE];
     fread(tmp, sizeof(short), FRAME_SIZE, f2);
   }
+#endif
+  tp_vad = vad_start();
+
   while (1) {
     kiss_fft_cpx X[FREQ_SIZE], Y[FREQ_SIZE], N[FREQ_SIZE], P[WINDOW_SIZE];
     float Ex[NB_BANDS], Ey[NB_BANDS], En[NB_BANDS], Ep[NB_BANDS];
@@ -549,7 +560,7 @@ int main(int argc, char **argv) {
     float g[NB_BANDS];
     short tmp[FRAME_SIZE];
     float vad=0;
-    float E=0;
+
     if (count==maxCount) break;
     if ((count%1000)==0) fprintf(stderr, "%d\r", count);
     if (++gain_change_count > 2821) {
@@ -569,48 +580,44 @@ int main(int argc, char **argv) {
         }
       }
     }
+
     if (speech_gain != 0) {
       fread(tmp, sizeof(short), FRAME_SIZE, f1);
       if (feof(f1)) {
-        rewind(f1);
-        fread(tmp, sizeof(short), FRAME_SIZE, f1);
+        exit( -1 );
+        return;
+        // rewind(f1);
+        // fread(tmp, sizeof(short), FRAME_SIZE, f1);
       }
       for (i=0;i<FRAME_SIZE;i++) x[i] = speech_gain*tmp[i];
-      for (i=0;i<FRAME_SIZE;i++) E += tmp[i]*(float)tmp[i];
     } else {
       for (i=0;i<FRAME_SIZE;i++) x[i] = 0;
-      E = 0;
     }
+
     if (noise_gain!=0) {
       fread(tmp, sizeof(short), FRAME_SIZE, f2);
       if (feof(f2)) {
-        rewind(f2);
-        fread(tmp, sizeof(short), FRAME_SIZE, f2);
+        exit( -1 );
+        return;
+        // rewind(f2);
+        // fread(tmp, sizeof(short), FRAME_SIZE, f2);
       }
       for (i=0;i<FRAME_SIZE;i++) n[i] = noise_gain*tmp[i];
     } else {
       for (i=0;i<FRAME_SIZE;i++) n[i] = 0;
     }
+
     biquad(x, mem_hp_x, x, b_hp, a_hp, FRAME_SIZE);
     biquad(x, mem_resp_x, x, b_sig, a_sig, FRAME_SIZE);
     biquad(n, mem_hp_n, n, b_hp, a_hp, FRAME_SIZE);
     biquad(n, mem_resp_n, n, b_noise, a_noise, FRAME_SIZE);
     for (i=0;i<FRAME_SIZE;i++) xn[i] = x[i] + n[i];
-    if (E > 1e9f) {
-      vad_cnt=0;
-    } else if (E > 1e8f) {
-      vad_cnt -= 5;
-    } else if (E > 1e7f) {
-      vad_cnt++;
-    } else {
-      vad_cnt+=2;
-    }
-    if (vad_cnt < 0) vad_cnt = 0;
-    if (vad_cnt > 15) vad_cnt = 15;
 
-    if (vad_cnt >= 10) vad = 0;
-    else if (vad_cnt > 0) vad = 0.5f;
-    else vad = 1.f;
+    tv_flag = vad_running_16k( tp_vad, tmp, FRAME_SIZE );
+    if( tv_flag == e_vad_ret_is_inactivation ) vad = 0.0;
+    else if( tv_flag == e_vad_ret_is_activation ) vad = 1.0;
+    else if( ( tv_flag == e_vad_ret_turn_activation )
+            || ( tv_flag = e_vad_ret_turn_inactivation ) ) vad = 0.5f;
 
     frame_analysis(st, Y, Ey, x);
     frame_analysis(noise_state, N, En, n);
