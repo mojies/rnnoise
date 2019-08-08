@@ -3,9 +3,9 @@
    Copyright (c) 2007-2009 Xiph.Org Foundation
    Written by Jean-Marc Valin */
 /**
-   @file arch.h
-   @brief Various architecture definitions for CELT
-*/
+  @file arch.h
+  @brief Various architecture definitions for CELT
+  */
 /*
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
@@ -29,7 +29,7 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+   */
 
 #ifndef ARCH_H
 #define ARCH_H
@@ -40,7 +40,7 @@
 # if !defined(__GNUC_PREREQ)
 #  if defined(__GNUC__)&&defined(__GNUC_MINOR__)
 #   define __GNUC_PREREQ(_maj,_min) \
- ((__GNUC__<<16)+__GNUC_MINOR__>=((_maj)<<16)+(_min))
+    ((__GNUC__<<16)+__GNUC_MINOR__>=((_maj)<<16)+(_min))
 #  else
 #   define __GNUC_PREREQ(_maj,_min) 0
 #  endif
@@ -57,8 +57,8 @@ __attribute__((noreturn))
 #endif
 static OPUS_INLINE void _celt_fatal(const char *str, const char *file, int line)
 {
-   fprintf (stderr, "Fatal (internal) error in %s, line %d: %s\n", file, line, str);
-   abort();
+    fprintf (stderr, "Fatal (internal) error in %s, line %d: %s\n", file, line, str);
+    abort();
 }
 #define celt_assert(cond) {if (!(cond)) {celt_fatal("assertion failed: " #cond);}}
 #define celt_assert2(cond, message) {if (!(cond)) {celt_fatal("assertion failed: " #cond "\n" message);}}
@@ -122,7 +122,7 @@ typedef opus_val32 celt_ener;
 #define ABS32(x) ((x) < 0 ? (-(x)) : (x))
 
 static OPUS_INLINE opus_int16 SAT16(opus_int32 x) {
-   return x > 32767 ? 32767 : x < -32768 ? -32768 : (opus_int16)x;
+    return x > 32767 ? 32767 : x < -32768 ? -32768 : (opus_int16)x;
 }
 
 #ifdef FIXED_DEBUG
@@ -162,9 +162,9 @@ typedef float celt_ener;
    Assumes IEEE 754 format. */
 static OPUS_INLINE int celt_isnan(float x)
 {
-   union {float f; opus_uint32 i;} in;
-   in.f = x;
-   return ((in.i>>23)&0xFF)==0xFF && (in.i&0x007FFFFF)!=0;
+    union {float f; opus_uint32 i;} in;
+    in.f = x;
+    return ((in.i>>23)&0xFF)==0xFF && (in.i&0x007FFFFF)!=0;
 }
 #else
 #ifdef __FAST_MATH__

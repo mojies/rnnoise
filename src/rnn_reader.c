@@ -22,7 +22,7 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+   */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -75,22 +75,22 @@ RNNModel *rnnoise_model_from_file(FILE *f)
         return NULL; \
     } \
     name = in; \
-    } while (0)
+} while (0)
 
 #define INPUT_ACTIVATION(name) do { \
     int activation; \
     INPUT_VAL(activation); \
     switch (activation) { \
         case F_ACTIVATION_SIGMOID: \
-            name = ACTIVATION_SIGMOID; \
-            break; \
+                                   name = ACTIVATION_SIGMOID; \
+        break; \
         case F_ACTIVATION_RELU: \
-            name = ACTIVATION_RELU; \
-            break; \
+                                name = ACTIVATION_RELU; \
+        break; \
         default: \
-            name = ACTIVATION_TANH; \
+                 name = ACTIVATION_TANH; \
     } \
-    } while (0)
+} while (0)
 
 #define INPUT_ARRAY(name, len) do { \
     rnn_weight *values = malloc((len) * sizeof(rnn_weight)); \
@@ -106,7 +106,7 @@ RNNModel *rnnoise_model_from_file(FILE *f)
         } \
         values[i] = in; \
     } \
-    } while (0)
+} while (0)
 
 #define INPUT_DENSE(name) do { \
     INPUT_VAL(name->nb_inputs); \
@@ -115,7 +115,7 @@ RNNModel *rnnoise_model_from_file(FILE *f)
     INPUT_ACTIVATION(name->activation); \
     INPUT_ARRAY(name->input_weights, name->nb_inputs * name->nb_neurons); \
     INPUT_ARRAY(name->bias, name->nb_neurons); \
-    } while (0)
+} while (0)
 
 #define INPUT_GRU(name) do { \
     INPUT_VAL(name->nb_inputs); \
@@ -125,7 +125,7 @@ RNNModel *rnnoise_model_from_file(FILE *f)
     INPUT_ARRAY(name->input_weights, name->nb_inputs * name->nb_neurons * 3); \
     INPUT_ARRAY(name->recurrent_weights, name->nb_neurons * name->nb_neurons * 3); \
     INPUT_ARRAY(name->bias, name->nb_neurons * 3); \
-    } while (0)
+} while (0)
 
     INPUT_DENSE(input_dense);
     INPUT_GRU(vad_gru);
@@ -135,7 +135,7 @@ RNNModel *rnnoise_model_from_file(FILE *f)
     INPUT_DENSE(vad_output);
 
     return ret;
-}
+    }
 
 void rnnoise_model_free(RNNModel *model)
 {
@@ -146,7 +146,7 @@ void rnnoise_model_free(RNNModel *model)
         free((void *) model->name->bias); \
         free((void *) model->name); \
     } \
-    } while (0)
+} while (0)
 #define FREE_GRU(name) do { \
     if (model->name) { \
         free((void *) model->name->input_weights); \
@@ -154,10 +154,10 @@ void rnnoise_model_free(RNNModel *model)
         free((void *) model->name->bias); \
         free((void *) model->name); \
     } \
-    } while (0)
+} while (0)
 
-    if (!model)
-        return;
+if (!model)
+    return;
     FREE_DENSE(input_dense);
     FREE_GRU(vad_gru);
     FREE_GRU(noise_gru);
@@ -165,4 +165,4 @@ void rnnoise_model_free(RNNModel *model)
     FREE_DENSE(denoise_output);
     FREE_DENSE(vad_output);
     free(model);
-}
+    }

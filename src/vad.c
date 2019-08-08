@@ -20,7 +20,7 @@
 
 // =============================================================================
 #define DBG_DCHECK(condition)                                               \
-      vad_FatalMessage(__FILE__, __LINE__, "DCHECK failed: " #condition);
+    vad_FatalMessage(__FILE__, __LINE__, "DCHECK failed: " #condition);
 #define DBG_DCHECK_EQ(a, b)             DBG_DCHECK((a) == (b))
 #define DBG_DCHECK_NE(a, b)             DBG_DCHECK((a) != (b))
 #define DBG_DCHECK_LE(a, b)             DBG_DCHECK((a) <= (b))
@@ -121,9 +121,9 @@ static int16_t WebRtcVad_FindMinimum(VadInstT* self,
         int channel );
 static void vad_FatalMessage( const char * file, int line, const char *msg );
 static void WebRtcVad_Downsampling( const int16_t* signal_in,
-                            int16_t* signal_out,
-                            int32_t* filter_state,
-                            size_t in_length);
+        int16_t* signal_out,
+        int32_t* filter_state,
+        size_t in_length);
 static int16_t WebRtcVad_CalculateFeatures( VadInstT* self,\
         const int16_t* data_in, size_t data_length,\
         int16_t* features) ;
@@ -264,40 +264,40 @@ static const int16_t kGlobalThresholdVAG[3] = { 1100, 1050, 1100 };
 #if 1
 // Don't call this directly except in tests!
 static __inline int WebRtcSpl_CountLeadingZeros32_NotBuiltin(uint32_t n) {
-  // Normalize n by rounding up to the nearest number that is a sequence of 0
-  // bits followed by a sequence of 1 bits. This number has the same number of
-  // leading zeros as the original n. There are exactly 33 such values.
-  n |= n >> 1;
-  n |= n >> 2;
-  n |= n >> 4;
-  n |= n >> 8;
-  n |= n >> 16;
+    // Normalize n by rounding up to the nearest number that is a sequence of 0
+    // bits followed by a sequence of 1 bits. This number has the same number of
+    // leading zeros as the original n. There are exactly 33 such values.
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
 
-  // Multiply the modified n with a constant selected (by exhaustive search)
-  // such that each of the 33 possible values of n give a product whose 6 most
-  // significant bits are unique. Then look up the answer in the table.
-  return kWebRtcSpl_CountLeadingZeros32_Table[(n * 0x8c0b2891) >> 26];
+    // Multiply the modified n with a constant selected (by exhaustive search)
+    // such that each of the 33 possible values of n give a product whose 6 most
+    // significant bits are unique. Then look up the answer in the table.
+    return kWebRtcSpl_CountLeadingZeros32_Table[(n * 0x8c0b2891) >> 26];
 }
 
 static __inline int WebRtcSpl_CountLeadingZeros32(uint32_t n) {
 #ifdef __GNUC__
-  DBG_COMPILE_ASSERT(sizeof(unsigned int) == sizeof(uint32_t));
-  return n == 0 ? 32 : __builtin_clz(n);
+    DBG_COMPILE_ASSERT(sizeof(unsigned int) == sizeof(uint32_t));
+    return n == 0 ? 32 : __builtin_clz(n);
 #else
-  return WebRtcSpl_CountLeadingZeros32_NotBuiltin(n);
+    return WebRtcSpl_CountLeadingZeros32_NotBuiltin(n);
 #endif
 }
 
 static __inline int16_t WebRtcSpl_GetSizeInBits(uint32_t n) {
-  return 32 - WebRtcSpl_CountLeadingZeros32(n);
+    return 32 - WebRtcSpl_CountLeadingZeros32(n);
 }
 
 static __inline int16_t WebRtcSpl_NormW32(int32_t a) {
-  return a == 0 ? 0 : WebRtcSpl_CountLeadingZeros32(a < 0 ? ~a : a) - 1;
+    return a == 0 ? 0 : WebRtcSpl_CountLeadingZeros32(a < 0 ? ~a : a) - 1;
 }
 
 static __inline int16_t WebRtcSpl_NormU32(uint32_t a) {
-  return a == 0 ? 0 : WebRtcSpl_CountLeadingZeros32(a);
+    return a == 0 ? 0 : WebRtcSpl_CountLeadingZeros32(a);
 }
 
 static __inline int32_t WebRtcSpl_DivW32W16( int32_t num, int16_t den ){
@@ -309,23 +309,23 @@ static __inline int32_t WebRtcSpl_DivW32W16( int32_t num, int16_t den ){
 // violation, so that our old code can continue to do what it's always been
 // doing.)
 static __inline int32_t OverflowingMulS16ByS32ToS32(int16_t a, int32_t b) {
-  return a * b;
+    return a * b;
 }
 
 
 
 #else
 static __inline int16_t WebRtcSpl_GetSizeInBits(uint32_t n) {
-  int bits = 0;
-  int i32 = 32;
+    int bits = 0;
+    int i32 = 32;
 
-  __asm __volatile(
-    "clz    %[bits],    %[n]                    \n\t"
-    "subu   %[bits],    %[i32],     %[bits]     \n\t"
-    : [bits] "=&r" (bits)
-    : [n] "r" (n), [i32] "r" (i32) );
+    __asm __volatile(
+            "clz    %[bits],    %[n]                    \n\t"
+            "subu   %[bits],    %[i32],     %[bits]     \n\t"
+            : [bits] "=&r" (bits)
+            : [n] "r" (n), [i32] "r" (i32) );
 
-  return (int16_t)bits;
+    return (int16_t)bits;
 }
 #endif
 
@@ -375,7 +375,7 @@ int vad_running_16k( void *ivad, const int16_t *iindata, unsigned idlen ){
     WebRtcVad_Downsampling( iindata, tv_buf, tp_vad->downsampling_filter_states, idlen  );
 #if 1
     total_power = WebRtcVad_CalculateFeatures( tp_vad, tv_buf, idlen/2,
-                                              feature_vector );
+            feature_vector );
     tp_vad->vad = GmmProbability( tp_vad, feature_vector, total_power, idlen/2 );
 #else
     int         tv_vadvalue;
@@ -578,36 +578,36 @@ static int16_t WebRtcVad_FindMinimum(VadInstT* self,
 // - data_out     [o]   : Output audio data in the frequency interval
 //                        80 - 250 Hz.
 static void HighPassFilter(const int16_t* data_in, size_t data_length,
-                           int16_t* filter_state, int16_t* data_out) {
-  size_t i;
-  const int16_t* in_ptr = data_in;
-  int16_t* out_ptr = data_out;
-  int32_t tmp32 = 0;
+        int16_t* filter_state, int16_t* data_out) {
+    size_t i;
+    const int16_t* in_ptr = data_in;
+    int16_t* out_ptr = data_out;
+    int32_t tmp32 = 0;
 
 
-  // The sum of the absolute values of the impulse response:
-  // The zero/pole-filter has a max amplification of a single sample of: 1.4546
-  // Impulse response: 0.4047 -0.6179 -0.0266  0.1993  0.1035  -0.0194
-  // The all-zero section has a max amplification of a single sample of: 1.6189
-  // Impulse response: 0.4047 -0.8094  0.4047  0       0        0
-  // The all-pole section has a max amplification of a single sample of: 1.9931
-  // Impulse response: 1.0000  0.4734 -0.1189 -0.2187 -0.0627   0.04532
+    // The sum of the absolute values of the impulse response:
+    // The zero/pole-filter has a max amplification of a single sample of: 1.4546
+    // Impulse response: 0.4047 -0.6179 -0.0266  0.1993  0.1035  -0.0194
+    // The all-zero section has a max amplification of a single sample of: 1.6189
+    // Impulse response: 0.4047 -0.8094  0.4047  0       0        0
+    // The all-pole section has a max amplification of a single sample of: 1.9931
+    // Impulse response: 1.0000  0.4734 -0.1189 -0.2187 -0.0627   0.04532
 
-  for (i = 0; i < data_length; i++) {
-    // All-zero section (filter coefficients in Q14).
-    tmp32 = kHpZeroCoefs[0] * *in_ptr;
-    tmp32 += kHpZeroCoefs[1] * filter_state[0];
-    tmp32 += kHpZeroCoefs[2] * filter_state[1];
-    filter_state[1] = filter_state[0];
-    filter_state[0] = *in_ptr++;
+    for (i = 0; i < data_length; i++) {
+        // All-zero section (filter coefficients in Q14).
+        tmp32 = kHpZeroCoefs[0] * *in_ptr;
+        tmp32 += kHpZeroCoefs[1] * filter_state[0];
+        tmp32 += kHpZeroCoefs[2] * filter_state[1];
+        filter_state[1] = filter_state[0];
+        filter_state[0] = *in_ptr++;
 
-    // All-pole section (filter coefficients in Q14).
-    tmp32 -= kHpPoleCoefs[1] * filter_state[2];
-    tmp32 -= kHpPoleCoefs[2] * filter_state[3];
-    filter_state[3] = filter_state[2];
-    filter_state[2] = (int16_t) (tmp32 >> 14);
-    *out_ptr++ = filter_state[2];
-  }
+        // All-pole section (filter coefficients in Q14).
+        tmp32 -= kHpPoleCoefs[1] * filter_state[2];
+        tmp32 -= kHpPoleCoefs[2] * filter_state[3];
+        filter_state[3] = filter_state[2];
+        filter_state[2] = (int16_t) (tmp32 >> 14);
+        *out_ptr++ = filter_state[2];
+    }
 }
 
 // All pass filtering of |data_in|, used before splitting the signal into two
@@ -680,8 +680,8 @@ static void SplitFilter(const int16_t* data_in, size_t data_length,
 }
 
 static int16_t WebRtcSpl_GetScalingSquare(int16_t* in_vector,
-                                   size_t in_vector_length,
-                                   size_t times)
+        size_t in_vector_length,
+        size_t times)
 {
     int16_t nbits = WebRtcSpl_GetSizeInBits((uint32_t)times);
     int16_t smax = -1;
@@ -712,8 +712,8 @@ static int16_t WebRtcSpl_GetScalingSquare(int16_t* in_vector,
 }
 
 int32_t WebRtcSpl_Energy(int16_t* vector,
-                         size_t vector_length,
-                         int* scale_factor)
+        size_t vector_length,
+        int* scale_factor)
 {
     int32_t en = 0;
     int scaling =
@@ -723,14 +723,14 @@ int32_t WebRtcSpl_Energy(int16_t* vector,
 #if 1
     int16_t *vectorptrend = vector + vector_length;
     for( ; vectorptr < vectorptrend; vectorptr++ )
-      en += (*vectorptr * *vectorptr) >> scaling;
+        en += (*vectorptr * *vectorptr) >> scaling;
 #else
     size_t looptimes = vector_length;
     size_t i;
     for (i = 0; i < looptimes; i++)
     {
-      en += (*vectorptr * *vectorptr) >> scaling;
-      vectorptr++;
+        en += (*vectorptr * *vectorptr) >> scaling;
+        vectorptr++;
     }
 #endif
     *scale_factor = scaling;
@@ -938,60 +938,60 @@ static int16_t WebRtcVad_CalculateFeatures(VadInstT* self, const int16_t* data_i
 // in addition to the probability we output |delta| (in Q11) used when updating
 // the noise/speech model.
 int32_t WebRtcVad_GaussianProbability(int16_t input,
-                                      int16_t mean,
-                                      int16_t std,
-                                      int16_t* delta) {
-  int16_t tmp16, inv_std, inv_std2, exp_value = 0;
-  int32_t tmp32;
+        int16_t mean,
+        int16_t std,
+        int16_t* delta) {
+    int16_t tmp16, inv_std, inv_std2, exp_value = 0;
+    int32_t tmp32;
 
-  // Calculate |inv_std| = 1 / s, in Q10.
-  // 131072 = 1 in Q17, and (|std| >> 1) is for rounding instead of truncation.
-  // Q-domain: Q17 / Q7 = Q10.
-  // tmp32 = (int32_t) 131072 + (int32_t) (std >> 1);
-  // tmp32 = (int32_t)(1<<17) + (int32_t) (std >> 1);
-  tmp32 = (int32_t)(0x20000) + (int32_t) (std >> 1);
-  inv_std = (int16_t) WebRtcSpl_DivW32W16(tmp32, std);
+    // Calculate |inv_std| = 1 / s, in Q10.
+    // 131072 = 1 in Q17, and (|std| >> 1) is for rounding instead of truncation.
+    // Q-domain: Q17 / Q7 = Q10.
+    // tmp32 = (int32_t) 131072 + (int32_t) (std >> 1);
+    // tmp32 = (int32_t)(1<<17) + (int32_t) (std >> 1);
+    tmp32 = (int32_t)(0x20000) + (int32_t) (std >> 1);
+    inv_std = (int16_t) WebRtcSpl_DivW32W16(tmp32, std);
 
-  // Calculate |inv_std2| = 1 / s^2, in Q14.
-  tmp16 = (inv_std >> 2);  // Q10 -> Q8.
-  // Q-domain: (Q8 * Q8) >> 2 = Q14.
-  inv_std2 = (int16_t)((tmp16 * tmp16) >> 2);
-  // TODO(bjornv): Investigate if changing to
-  // inv_std2 = (int16_t)((inv_std * inv_std) >> 6);
-  // gives better accuracy.
+    // Calculate |inv_std2| = 1 / s^2, in Q14.
+    tmp16 = (inv_std >> 2);  // Q10 -> Q8.
+    // Q-domain: (Q8 * Q8) >> 2 = Q14.
+    inv_std2 = (int16_t)((tmp16 * tmp16) >> 2);
+    // TODO(bjornv): Investigate if changing to
+    // inv_std2 = (int16_t)((inv_std * inv_std) >> 6);
+    // gives better accuracy.
 
-  tmp16 = (input << 3);  // Q4 -> Q7
-  tmp16 = tmp16 - mean;  // Q7 - Q7 = Q7
+    tmp16 = (input << 3);  // Q4 -> Q7
+    tmp16 = tmp16 - mean;  // Q7 - Q7 = Q7
 
-  // To be used later, when updating noise/speech model.
-  // |delta| = (x - m) / s^2, in Q11.
-  // Q-domain: (Q14 * Q7) >> 10 = Q11.
-  *delta = (int16_t)((inv_std2 * tmp16) >> 10);
+    // To be used later, when updating noise/speech model.
+    // |delta| = (x - m) / s^2, in Q11.
+    // Q-domain: (Q14 * Q7) >> 10 = Q11.
+    *delta = (int16_t)((inv_std2 * tmp16) >> 10);
 
-  // Calculate the exponent |tmp32| = (x - m)^2 / (2 * s^2), in Q10. Replacing
-  // division by two with one shift.
-  // Q-domain: (Q11 * Q7) >> 8 = Q10.
-  tmp32 = (*delta * tmp16) >> 9;
+    // Calculate the exponent |tmp32| = (x - m)^2 / (2 * s^2), in Q10. Replacing
+    // division by two with one shift.
+    // Q-domain: (Q11 * Q7) >> 8 = Q10.
+    tmp32 = (*delta * tmp16) >> 9;
 
-  // If the exponent is small enough to give a non-zero probability we calculate
-  // |exp_value| ~= exp(-(x - m)^2 / (2 * s^2))
-  //             ~= exp2(-log2(exp(1)) * |tmp32|).
-  if (tmp32 < kCompVar) {
-    // Calculate |tmp16| = log2(exp(1)) * |tmp32|, in Q10.
-    // Q-domain: (Q12 * Q10) >> 12 = Q10.
-    tmp16 = (int16_t)((kLog2Exp * tmp32) >> 12);
-    tmp16 = -tmp16;
-    exp_value = (0x0400 | (tmp16 & 0x03FF));
-    tmp16 ^= 0xFFFF;
-    tmp16 >>= 10;
-    tmp16 += 1;
-    // Get |exp_value| = exp(-|tmp32|) in Q10.
-    exp_value >>= tmp16;
-  }
+    // If the exponent is small enough to give a non-zero probability we calculate
+    // |exp_value| ~= exp(-(x - m)^2 / (2 * s^2))
+    //             ~= exp2(-log2(exp(1)) * |tmp32|).
+    if (tmp32 < kCompVar) {
+        // Calculate |tmp16| = log2(exp(1)) * |tmp32|, in Q10.
+        // Q-domain: (Q12 * Q10) >> 12 = Q10.
+        tmp16 = (int16_t)((kLog2Exp * tmp32) >> 12);
+        tmp16 = -tmp16;
+        exp_value = (0x0400 | (tmp16 & 0x03FF));
+        tmp16 ^= 0xFFFF;
+        tmp16 >>= 10;
+        tmp16 += 1;
+        // Get |exp_value| = exp(-|tmp32|) in Q10.
+        exp_value >>= tmp16;
+    }
 
-  // Calculate and return (1 / s) * exp(-(x - m)^2 / (2 * s^2)), in Q20.
-  // Q-domain: Q10 * Q10 = Q20.
-  return inv_std * exp_value;
+    // Calculate and return (1 / s) * exp(-(x - m)^2 / (2 * s^2)), in Q20.
+    // Q-domain: Q10 * Q10 = Q20.
+    return inv_std * exp_value;
 }
 
 // Calculates the weighted average w.r.t. number of Gaussians. The |data| are
@@ -1003,15 +1003,15 @@ int32_t WebRtcVad_GaussianProbability(int16_t input,
 //
 // returns          : The weighted average.
 static int32_t WeightedAverage(int16_t* data, int16_t offset,
-                               const int16_t* weights) {
-  int k;
-  int32_t weighted_average = 0;
+        const int16_t* weights) {
+    int k;
+    int32_t weighted_average = 0;
 
-  for (k = 0; k < kNumGaussians; k++) {
-    data[k * kNumChannels] += offset;
-    weighted_average += data[k * kNumChannels] * weights[k * kNumChannels];
-  }
-  return weighted_average;
+    for (k = 0; k < kNumGaussians; k++) {
+        data[k * kNumChannels] += offset;
+        weighted_average += data[k * kNumChannels] * weights[k * kNumChannels];
+    }
+    return weighted_average;
 }
 
 // Calculates the probabilities for both speech and background noise using
@@ -1438,53 +1438,53 @@ static int WebRtcVad_InitCore(VadInstT* self) {
 static int WebRtcVad_set_mode_core(VadInstT* self, int mode) {
     int return_value = 0;
     switch (mode) {
-    case 0:
-        // Quality mode.
-        memcpy(self->over_hang_max_1, kOverHangMax1Q,
-                sizeof(self->over_hang_max_1));
-        memcpy(self->over_hang_max_2, kOverHangMax2Q,
-                sizeof(self->over_hang_max_2));
-        memcpy(self->individual, kLocalThresholdQ,
-                sizeof(self->individual));
-        memcpy(self->total, kGlobalThresholdQ,
-                sizeof(self->total));
-    break;
-    case 1:
-        // Low bitrate mode.
-        memcpy(self->over_hang_max_1, kOverHangMax1LBR,
-                sizeof(self->over_hang_max_1));
-        memcpy(self->over_hang_max_2, kOverHangMax2LBR,
-                sizeof(self->over_hang_max_2));
-        memcpy(self->individual, kLocalThresholdLBR,
-                sizeof(self->individual));
-        memcpy(self->total, kGlobalThresholdLBR,
-                sizeof(self->total));
-    break;
-    case 2:
-        // Aggressive mode.
-        memcpy(self->over_hang_max_1, kOverHangMax1AGG,
-                sizeof(self->over_hang_max_1));
-        memcpy(self->over_hang_max_2, kOverHangMax2AGG,
-                sizeof(self->over_hang_max_2));
-        memcpy(self->individual, kLocalThresholdAGG,
-                sizeof(self->individual));
-        memcpy(self->total, kGlobalThresholdAGG,
-                sizeof(self->total));
-    break;
-    case 3:
-        // Very aggressive mode.
-        memcpy(self->over_hang_max_1, kOverHangMax1VAG,
-                sizeof(self->over_hang_max_1));
-        memcpy(self->over_hang_max_2, kOverHangMax2VAG,
-                sizeof(self->over_hang_max_2));
-        memcpy(self->individual, kLocalThresholdVAG,
-                sizeof(self->individual));
-        memcpy(self->total, kGlobalThresholdVAG,
-                sizeof(self->total));
-    break;
-    default:
-        return_value = -1;
-    break;
+        case 0:
+            // Quality mode.
+            memcpy(self->over_hang_max_1, kOverHangMax1Q,
+                    sizeof(self->over_hang_max_1));
+            memcpy(self->over_hang_max_2, kOverHangMax2Q,
+                    sizeof(self->over_hang_max_2));
+            memcpy(self->individual, kLocalThresholdQ,
+                    sizeof(self->individual));
+            memcpy(self->total, kGlobalThresholdQ,
+                    sizeof(self->total));
+            break;
+        case 1:
+            // Low bitrate mode.
+            memcpy(self->over_hang_max_1, kOverHangMax1LBR,
+                    sizeof(self->over_hang_max_1));
+            memcpy(self->over_hang_max_2, kOverHangMax2LBR,
+                    sizeof(self->over_hang_max_2));
+            memcpy(self->individual, kLocalThresholdLBR,
+                    sizeof(self->individual));
+            memcpy(self->total, kGlobalThresholdLBR,
+                    sizeof(self->total));
+            break;
+        case 2:
+            // Aggressive mode.
+            memcpy(self->over_hang_max_1, kOverHangMax1AGG,
+                    sizeof(self->over_hang_max_1));
+            memcpy(self->over_hang_max_2, kOverHangMax2AGG,
+                    sizeof(self->over_hang_max_2));
+            memcpy(self->individual, kLocalThresholdAGG,
+                    sizeof(self->individual));
+            memcpy(self->total, kGlobalThresholdAGG,
+                    sizeof(self->total));
+            break;
+        case 3:
+            // Very aggressive mode.
+            memcpy(self->over_hang_max_1, kOverHangMax1VAG,
+                    sizeof(self->over_hang_max_1));
+            memcpy(self->over_hang_max_2, kOverHangMax2VAG,
+                    sizeof(self->over_hang_max_2));
+            memcpy(self->individual, kLocalThresholdVAG,
+                    sizeof(self->individual));
+            memcpy(self->total, kGlobalThresholdVAG,
+                    sizeof(self->total));
+            break;
+        default:
+            return_value = -1;
+            break;
     }
     return return_value;
 }

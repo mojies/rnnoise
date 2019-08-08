@@ -22,7 +22,7 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+   */
 
 #ifndef RNN_H_
 #define RNN_H_
@@ -42,20 +42,20 @@
 typedef signed char rnn_weight;
 
 typedef struct {
-  const rnn_weight *bias;
-  const rnn_weight *input_weights;
-  int nb_inputs;
-  int nb_neurons;
-  int activation;
+    const rnn_weight *bias;
+    const rnn_weight *input_weights;
+    int nb_inputs;
+    int nb_neurons;
+    int activation;
 } DenseLayer;
 
 typedef struct {
-  const rnn_weight *bias;
-  const rnn_weight *input_weights;
-  const rnn_weight *recurrent_weights;
-  int nb_inputs;
-  int nb_neurons;
-  int activation;
+    const rnn_weight *bias;
+    const rnn_weight *input_weights;
+    const rnn_weight *recurrent_weights;
+    int nb_inputs;
+    int nb_neurons;
+    int activation;
 } GRULayer;
 
 typedef struct RNNState RNNState;
