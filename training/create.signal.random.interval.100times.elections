@@ -1,0 +1,57 @@
+#!/usr/bin/python
+import random as rd
+import os as os
+
+originSingnalPath = '../data/origin/';
+singnalPath = '/share/tmp/singnal.pcm'
+
+originNoisePath = '../data/origin/noise.pcm'
+noisePath = '/share/tmp/noise.pcm'
+
+signalBatchNumbers = 100
+
+seqOnePatch = [ i for i in range(30) ];
+seqOneHandred = seqOnePatch * signalBatchNumbers;
+# print( seqOneHandred )
+rd.shuffle( seqOneHandred )
+# print( seqOneHandred )
+
+singnalFd = open( singnalPath, 'w+b' )
+
+for index in seqOneHandred:
+    inFileName = originSingnalPath + str( index + 1 ) + '.pcm'
+    print( inFileName )
+    randomIntervalMs = int( ( rd.random()*12 + 2 ) * 1000 )
+    randomIntervalSamples = randomIntervalMs * 48
+    randomEmptyAudio = bytes( [ 0, 0 ]*randomIntervalSamples )
+
+    print( len( randomEmptyAudio ) )
+
+    with open( inFileName, 'r+b' ) as inFd:
+        data = inFd.read()
+    inFd.close()
+    # print( len( data )/48 )
+    # print( type( data ) )
+    singnalFd.write( randomEmptyAudio )
+    singnalFd.write( data )
+
+
+singnalFd.close();
+
+singnalSize = os.path.getsize( singnalPath )
+originNoiseSize = os.path.getsize( originNoisePath )
+
+signalSamples = singnalSize/2;
+originNoiseSmaples = originNoiseSize/2;
+
+noiseReplicaNumbers = int( signalSamples / originNoiseSmaples + 1 )
+
+originNoiseFd = open( originNoisePath, 'r+b' )
+noiseData = originNoiseFd.read()*noiseReplicaNumbers;
+originNoiseFd.close();
+
+
+noiseFd = open( noisePath, 'w+b' )
+noiseFd.write( noiseData );
+noiseFd.close();
+
