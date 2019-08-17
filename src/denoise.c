@@ -32,6 +32,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "kiss_fft.h"
 #include "common.h"
 #include <math.h>
@@ -529,19 +531,21 @@ int main(int argc, char **argv) {
     DenoiseState *noisy;
     void       *tp_vad;
     int         tv_flag;
+    int         f3;
 
     st = rnnoise_create(NULL);
     noise_state = rnnoise_create(NULL);
     noisy = rnnoise_create(NULL);
 
-    if (argc!=4) {
-        fprintf(stderr, "usage: %s <speech> <noise> <count>\n", argv[0]);
+    if (argc!=5) {
+        fprintf(stderr, "usage: %s <speech> <noise> <output> <count>\n", argv[0]);
         return 1;
     }
 
     f1 = fopen(argv[1], "r");
     f2 = fopen(argv[2], "r");
-    maxCount = atoi(argv[3]);
+    f3 = open( argv[3], O_WRONLY|O_CREAT|O_TRUNC, S_IRWXU|S_IRWXG|S_IRWXO );
+    maxCount = atoi(argv[4]);
 
 #if 0
     for(i=0;i<150;i++) {
@@ -555,11 +559,14 @@ int main(int argc, char **argv) {
         kiss_fft_cpx X[FREQ_SIZE], Y[FREQ_SIZE], N[FREQ_SIZE], P[WINDOW_SIZE];
         float Ex[NB_BANDS], Ey[NB_BANDS], En[NB_BANDS], Ep[NB_BANDS];
         float Exp[NB_BANDS];
-        float Ln[NB_BANDS];
-        float features[NB_FEATURES];
-        float g[NB_BANDS];
+        float features[ NB_FEATURES + NB_BANDS + NB_BANDS + 1 ];
+        // float g[NB_BANDS];
+        // float Ln[NB_BANDS];
+        // float vad=0;
+        float *g = &features[ NB_FEATURES ];
+        float *Ln = &features[ NB_FEATURES + NB_BANDS ];
+        float *vad = &features[ NB_FEATURES + 2*NB_BANDS ];
         short tmp[FRAME_SIZE];
-        float vad=0;
 
         if (count==maxCount) break;
         if ((count%1000)==0) fprintf(stderr, "%d\r", count);
@@ -614,14 +621,16 @@ int main(int argc, char **argv) {
         for (i=0;i<FRAME_SIZE;i++) xn[i] = x[i] + n[i];
 
         tv_flag = vad_running_16k( tp_vad, tmp, FRAME_SIZE );
-        if( tv_flag == e_vad_ret_is_inactivation ) vad = 0.0;
-        else if( tv_flag == e_vad_ret_is_activation ) vad = 1.0;
+        if( tv_flag == e_vad_ret_is_inactivation ) *vad = 0.0;
+        else if( tv_flag == e_vad_ret_is_activation ) *vad = 1.0;
         else if( ( tv_flag == e_vad_ret_turn_activation )
-                || ( tv_flag = e_vad_ret_turn_inactivation ) ) vad = 0.5f;
+                || ( tv_flag = e_vad_ret_turn_inactivation ) ) *vad = 0.5f;
+        else *vad = 0.0;
 
         frame_analysis(st, Y, Ey, x);
         frame_analysis(noise_state, N, En, n);
-        for (i=0;i<NB_BANDS;i++) Ln[i] = log10(1e-2+En[i]);
+        for (i=0;i<NB_BANDS;i++)
+            Ln[i] = log10(1e-2+En[i]);
         int silence = compute_frame_features(noisy, X, P, Ex, Ep, Exp, features, xn);
         pitch_filter(X, P, Ex, Ep, Exp, g);
         //printf("%f %d\n", noisy->last_gain, noisy->last_period);
@@ -634,15 +643,19 @@ int main(int argc, char **argv) {
         }
         count++;
 #if 1
-        fwrite(features, sizeof(float), NB_FEATURES, stdout);
-        fwrite(g, sizeof(float), NB_BANDS, stdout);
-        fwrite(Ln, sizeof(float), NB_BANDS, stdout);
-        fwrite(&vad, sizeof(float), 1, stdout);
+        write( f3, features, sizeof(float)*(NB_FEATURES+2*NB_BANDS+1) );
+
+        // fwrite(features, sizeof(float), NB_FEATURES, stdout);
+        // fwrite(g, sizeof(float), NB_BANDS, stdout);
+        // fwrite(Ln, sizeof(float), NB_BANDS, stdout);
+        // fwrite(&vad, sizeof(float), 1, stdout);
 #endif
     }
-    fprintf(stderr, "matrix size: %d x %d\n", count, NB_FEATURES + 2*NB_BANDS + 1);
+    // fprintf(stderr, "matrix size: %d x %d\n", count, NB_FEATURES + 2*NB_BANDS + 1);
+    fprintf( stdout, "matrix size: %d x %d\n", count, NB_FEATURES + 2*NB_BANDS + 1 );
     fclose(f1);
     fclose(f2);
+    close(f3);
     return 0;
 }
 
