@@ -11047,5 +11047,6 @@ const struct RNNModel rnnoise_model_orig = {
     &denoise_output,
 
     1,
-    &vad_output
+    &vad_output,
+
 };
