@@ -8,7 +8,7 @@ singnalPath = '/share/tmp/singnal.pcm'
 originNoisePath = '../data/origin/noise.pcm'
 noisePath = '/share/tmp/noise.pcm'
 
-signalBatchNumbers = 100
+signalBatchNumbers = 10
 
 seqOnePatch = [ i for i in range(30) ];
 seqOneHandred = seqOnePatch * signalBatchNumbers;
@@ -21,7 +21,7 @@ singnalFd = open( singnalPath, 'w+b' )
 for index in seqOneHandred:
     inFileName = originSingnalPath + str( index + 1 ) + '.pcm'
     print( inFileName )
-    randomIntervalMs = int( ( rd.random()*12 + 2 ) * 1000 )
+    randomIntervalMs = int( ( rd.random()*2 + 1 ) * 1000 )
     randomIntervalSamples = randomIntervalMs * 48
     randomEmptyAudio = bytes( [ 0, 0 ]*randomIntervalSamples )
 

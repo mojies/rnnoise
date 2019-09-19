@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# cd ../src; ./compile.sh; cd -
+cd ../src; ./compile.sh; cd -
 
 FILE_SIZE=$(stat --printf="%s" /share/tmp/singnal.pcm)
 let COUNT=${FILE_SIZE}/960

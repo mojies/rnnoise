@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from __future__ import print_function
 
@@ -21,12 +21,14 @@ from keras.constraints import Constraint
 from keras import backend as K
 import numpy as np
 
-#import tensorflow as tf
-#from keras.backend.tensorflow_backend import set_session
-#config = tf.ConfigProto()
-#config.gpu_options.per_process_gpu_memory_fraction = 0.42
-#set_session(tf.Session(config=config))
+import os
 
+import tensorflow as tf
+from keras.backend.tensorflow_backend import set_session
+config = tf.ConfigProto( device_count={'GPU':1, 'CPU':1},
+                        intra_op_parallelism_threads=1,
+                        inter_op_parallelism_threads=4 )
+set_session(tf.Session(config=config))
 
 def my_crossentropy(y_true, y_pred):
     return K.mean(2*K.abs(y_true-0.5) * K.binary_crossentropy(y_pred, y_true), axis=-1)
@@ -74,15 +76,20 @@ denoise_output = Dense(22, activation='sigmoid', name='denoise_output', kernel_c
 
 model = Model(inputs=main_input, outputs=[denoise_output, vad_output])
 
-model.compile(loss=[mycost, my_crossentropy],
+adadelta = keras.optimizers.Adadelta(lr=1.0, rho=0.95, epsilon=None, decay=0.0)
+model.compile( loss=[mycost, my_crossentropy],
               metrics=[msse],
-              optimizer='adam', loss_weights=[10, 0.5])
+              optimizer=adadelta )
+
+# model.compile(loss=[mycost, my_crossentropy],
+#               metrics=[msse],
+#               optimizer='adam', loss_weights=[10, 0.5])
 
 
-batch_size = 32
+batch_size = 128+64
 
 print('Loading data...')
-with h5py.File('training.h5', 'r') as hf:
+with h5py.File('/share/tmp/training.h5', 'r') as hf:
     all_data = hf['data'][:]
 print('done.')
 
@@ -109,8 +116,25 @@ all_data = 0;
 print(len(x_train), 'train sequences. x shape =', x_train.shape, 'y shape = ', y_train.shape)
 
 print('Train...')
-model.fit(x_train, [y_train, vad_train],
-          batch_size=batch_size,
-          epochs=120,
-          validation_split=0.1)
-model.save("weights.hdf5")
+
+midWeightPath = './weights.mid.hdf5'
+endEpochHookCB = keras.callbacks.ModelCheckpoint( midWeightPath,
+                monitor = 'val_loss',
+                save_weights_only = True,
+                verbose = 1,
+                save_best_only = True,
+                period = 1 )
+
+if os.path.exists( midWeightPath ):
+    model.load_weights( midWeightPath )
+    print("checkpoint_loaded")
+
+model.fit( x_train, [ y_train, vad_train ],
+          batch_size = batch_size,
+          epochs = 1000,
+          initial_epoch = 0,
+          validation_split = 0.1,
+          callbacks = [ endEpochHookCB ] )
+
+model.save("./weights.final.hdf5")
+

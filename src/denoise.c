@@ -504,7 +504,7 @@ static void rand_resp(float *a, float *b) {
     b[1] = .75*uni_rand();
 }
 
-#define OriginVAD 0
+#define OriginVAD 1
 
 #if OriginVAD
 #include "vad.h"
